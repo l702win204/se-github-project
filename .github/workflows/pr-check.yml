@@ -1,4 +1,4 @@
-YAML
+
 # .github/workflows/pr-check.yml
 name: PR Check
 # 触发器：当有 PR 提交到 develop 分支时运行

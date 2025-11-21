@@ -1,30 +1,22 @@
-YAML
+
 # .github/workflows/pr-check.yml
 name: PR Check
-# 触发器：当有 PR 提交到 develop 分支时运行
 on:
- pull_request:
- branches: [ develop ]
-# 任务
+  pull_request:
+    branches: [ develop ]
 jobs:
- # 任务 ID，可自定义
- build-and-test:
- # 运行环境：使用最新的 Ubuntu
- runs-on: ubuntu-latest
- # 步骤
- steps:
- # 步骤 1：检出代码
- - name: Check out repository code
- uses: actions/checkout@v4
- # 步骤 2：安装 Node.js (模拟一个真实环境)
- - name: Use Node.js 20.x
- uses: actions/setup-node@v4
- with:
- node-version: '20.x'
- # 步骤 3：运行一个模拟的 "test"
- - name: Run a mock test
- run: |
- echo "Simulating tests..."
- echo "Running linter..."
- sleep 10
- echo "All tests passed!"
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Run a mock test
+        run: |
+          echo "Simulating tests..."
+          echo "Running linter..."
+          sleep 10
+          echo "All tests passed!"

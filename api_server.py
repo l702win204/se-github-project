@@ -8,7 +8,7 @@ class SimpleAPI(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
 # 模拟后端数据
-        response = {"status": "active", "service": "OrderService", "version": "1.0"}
+        response = {"status": "active", "service": "OrderService", "2.0 - Docker Edition"}
         self.wfile.write(json.dumps(response).encode())
 # 服务监听所有 IP (空字符串) 的 8080 端口
 server_address = ('', 8080)

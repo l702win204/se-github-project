@@ -29,26 +29,26 @@ deploy:
  steps:
   - name: 🚀 SSH 远程部署
     uses: appleboy/ssh-action@v1.0.3
-    with:
-     host: ${{ secrets.HOST_IP }}
-     username: ubuntu
-     key: ${{ secrets.SSH_PRIVATE_KEY }}
-     script_stop: true # 如果脚本出错立即停止
+      with:
+       host: ${{ secrets.HOST_IP }}
+       username: ubuntu
+       key: ${{ secrets.SSH_PRIVATE_KEY }}
+       script_stop: true # 如果脚本出错立即停止
 # 远程执行的 Shell 脚本
-     script: |
-      echo "--- 开始部署流程 ---"
+       script: |
+        echo "--- 开始部署流程 ---"
 # 1. 停止并删除旧容器 (如果存在)
 # || true 表示即使容器不存在也不报错，继续执行
-      docker stop my-app || true
-      docker rm my-app || true
+        docker stop my-app || true
+        docker rm my-app || true
 # 2. 拉取 Docker Hub 上的最新镜像
-      echo "正在拉取最新镜像..."
-      docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+        echo "正在拉取最新镜像..."
+        docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 # 3. 启动新容器
-      echo "启动新容器..."
-      docker run -d \
-       --name my-app \
-       --restart always \
-       -p 8080:8080 \
-       ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
-      echo "--- 部署完成 ---"
+        echo "启动新容器..."
+        docker run -d \
+         --name my-app \
+         --restart always \
+         -p 8080:8080 \
+         ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+        echo "--- 部署完成 ---"

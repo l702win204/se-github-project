@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+# 触发机制：当代码 Push 到 main 分支时自动运行
+on:
+ push:
+  branches: [ main ]
+ jobs:
+# === 任务 1: 构建并推送镜像 ===
+  build-and-push:
+  runs-on: ubuntu-latest
+  steps:
+   - name: 📥 检出代码 (Checkout)
+     uses: actions/checkout@v4
+   - name: 🐳 登录 Docker Hub
+     uses: docker/login-action@v3
+     with:
+      username: ${{ secrets.DOCKER_USERNAME }}
+      password: ${{ secrets.DOCKER_PASSWORD }}
+   - name: 🔨 构建并推送镜像
+     uses: docker/build-push-action@v5
+     with:
+      context: .
+      push: true
+# 标记镜像版本：latest
+      tags: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+# === 任务 2: 部署到云服务器 ===
+deploy:
+ needs: build-and-push # 只有任务 1 成功了才执行部署
+ runs-on: ubuntu-latest
+ steps:
+  - name: 🚀 SSH 远程部署
+    uses: appleboy/ssh-action@v1.0.3
+    with:
+     host: ${{ secrets.HOST_IP }}
+     username: ubuntu
+     key: ${{ secrets.SSH_PRIVATE_KEY }}
+     script_stop: true # 如果脚本出错立即停止
+# 远程执行的 Shell 脚本
+     script: |
+      echo "--- 开始部署流程 ---"
+# 1. 停止并删除旧容器 (如果存在)
+# || true 表示即使容器不存在也不报错，继续执行
+      docker stop my-app || true
+      docker rm my-app || true
+# 2. 拉取 Docker Hub 上的最新镜像
+      echo "正在拉取最新镜像..."
+      docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+# 3. 启动新容器
+      echo "启动新容器..."
+      docker run -d \
+       --name my-app \
+       --restart always \
+       -p 8080:8080 \
+       ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+      echo "--- 部署完成 ---"

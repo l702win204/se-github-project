@@ -24,10 +24,9 @@ jobs:
         with:
           context: .
           push: true
-          # 修复：tags使用数组格式，同时添加提交哈希标签（避免latest覆盖风险）
+          # 标记镜像版本:latest
           tags:
             - ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
-            - ${{ secrets.DOCKER_USERNAME }}/project-alpha:${{ github.sha }}
 
   # === 任务2:部署到云服务器 ===
   deploy:
@@ -46,19 +45,20 @@ jobs:
             echo "--- 开始部署流程 ---"
 
             # 1. 停止并删除旧容器 (如果存在)
+            # || true 表示即使容器不存在也不报错, 继续执行
             docker stop my-app || true
             docker rm my-app || true
 
-            # 2. 拉取 Docker Hub 上的最新镜像（使用提交哈希标签，与构建版本一致）
+            # 2. 拉取 Docker Hub 上的最新镜像
             echo "正在拉取最新镜像..."
-            docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:${{ github.sha }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 
-            # 3. 启动新容器（修复：换行符\后无多余空格）
+            # 3. 启动新容器
             echo "启动新容器..."
             docker run -d \
-            --name my-app \
-            --restart always \
-            -p 8080:8080 \
-            ${{ secrets.DOCKER_USERNAME }}/project-alpha:${{ github.sha }}
+              --name my-app \
+              --restart always \
+              -p 8080:8080 \
+              ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 
             echo "--- 部署完成 ---"

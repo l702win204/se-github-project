@@ -1,6 +1,6 @@
 name: CI/CD Pipeline
 
-# 触发机制:当代码Push到main分支时自动运行
+# 触发机制:代码Push到main分支时自动运行
 on:
   push:
     branches: [ main ]
@@ -24,12 +24,11 @@ jobs:
         with:
           context: .
           push: true
-          # 标记镜像版本: latest（修复：添加空格分隔变量与镜像名）
           tags: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 
   # === 任务2:部署到云服务器 ===
   deploy:
-    needs: build-and-push  # 只有任务1成功了才执行部署
+    needs: build-and-push  # 仅当任务1成功后执行
     runs-on: ubuntu-latest
     steps:
       - name: 🖥️ SSH 远程部署
@@ -38,26 +37,19 @@ jobs:
           host: ${{ secrets.HOST_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script_stop: true  # 如果脚本出错立即停止
-          # 远程执行的Shell脚本
+          script_stop: true  # 脚本出错时立即停止
           script: |
-            echo "--- 开始部署流程 ---"
-
-            # 1. 停止并删除旧容器（如果存在）
-            # || true 表示即使容器不存在也不报错，继续执行
+            # 停止旧容器
             docker stop my-app || true
             docker rm my-app || true
 
-            # 2. 拉取 Docker Hub 上的最新镜像
-            echo "正在拉取最新镜像..."
+            # 拉取镜像（修正变量引用）
+            echo "拉取镜像: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
             docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 
-            # 3. 启动新容器（修复：缩进对齐 & 语法格式）
-            echo "启动新容器..."
+            # 启动新容器
             docker run -d \
               --name my-app \
               --restart always \
               -p 8080:8080 \
               ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
-
-            echo "--- 部署完成 ---"

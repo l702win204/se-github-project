@@ -31,25 +31,22 @@ jobs:
     needs: build-and-push  # 仅当任务1成功后执行
     runs-on: ubuntu-latest
     steps:
-      - name: 🖥️ SSH 远程部署
+      - name: SSH远程部署（密码认证）
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.HOST_IP }}
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script_stop: true  # 脚本出错时立即停止
-          script: |
-            # 停止旧容器
-            docker stop my-app || true
-            docker rm my-app || true
-
-            # 拉取镜像（修正变量引用）
-            echo "拉取镜像: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
-            docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
-
-            # 启动新容器
-            docker run -d \
-              --name my-app \
-              --restart always \
-              -p 8080:8080 \
-              ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+         host: ${{ secrets.SSH_HOST }}       # 引用服务器IP（已配置的Secret）
+         username: ${{ secrets.SSH_USERNAME }} # 引用登录用户名（如root，已配置的Secret）
+         password: ${{ secrets.SSH_PASSWORD }} # 关键：替换为密码认证（引用SSH_PASSWORD Secret）
+         script: |
+           # 停止旧容器
+           docker stop my-app || true
+           # 删除旧容器
+           docker rm my-app || true
+           # 拉取最新镜像
+           docker pull ***/project-alpha:latest
+           # 启动新容器
+           docker run -d \
+             --name my-app \
+             --restart always \
+             -p 8080:8080 \
+             ***/project-alpha:latest

@@ -6,12 +6,16 @@ on:
     branches: [ main ]
 
 jobs:
-  # === 任务1:构建并推送镜像 ===
+  # === 任务1:构建并推送镜像（新增变量调试） ===
   build-and-push:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 检出代码 (Checkout)
         uses: actions/checkout@v4
+
+      - name: 🧪 调试DOCKER_USERNAME变量
+        run: echo "当前DOCKER_USERNAME:${{ secrets.DOCKER_USERNAME }}"
+        # 观察日志：若显示正确用户名则密钥正常；若为***则需重新配置
 
       - name: 🐳 登录 Docker Hub
         uses: docker/login-action@v3
@@ -26,27 +30,30 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 
-  # === 任务2:部署到云服务器 ===
+  # === 任务2:部署到云服务器（确保变量格式正确） ===
   deploy:
     needs: build-and-push  # 仅当任务1成功后执行
     runs-on: ubuntu-latest
     steps:
-      - name: SSH远程部署（密码认证）
+      - name: 🖥️ SSH 远程部署
         uses: appleboy/ssh-action@v1.0.3
         with:
-         host: ${{ secrets.SSH_HOST }}       # 引用服务器IP（已配置的Secret）
-         username: ${{ secrets.SSH_USERNAME }} # 引用登录用户名（如root，已配置的Secret）
-         password: ${{ secrets.SSH_PASSWORD }} # 关键：替换为密码认证（引用SSH_PASSWORD Secret）
-         script: |
-           # 停止旧容器
-           docker stop my-app || true
-           # 删除旧容器
-           docker rm my-app || true
-           # 拉取最新镜像
-           docker pull ***/project-alpha:latest
-           # 启动新容器
-           docker run -d \
-             --name my-app \
-             --restart always \
-             -p 8080:8080 \
-             ***/project-alpha:latest
+          host: ${{ secrets.HOST_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true  # 脚本出错时立即停止
+          script: |
+            # 停止旧容器
+            docker stop my-app || true
+            docker rm my-app || true
+
+            # 拉取镜像（强制变量格式：双大括号+空格）
+            echo "拉取镜像: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
+            docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+
+            # 启动新容器
+            docker run -d \
+              --name my-app \
+              --restart always \
+              -p 8080:8080 \
+              ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest

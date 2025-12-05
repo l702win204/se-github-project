@@ -41,7 +41,7 @@ jobs:
           host: ${{ secrets.HOST_IP }}
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
+          script_stop: true  # 脚本出错时立即停止
           script: |
             # 停止旧容器
             docker stop my-app || true

@@ -23,37 +23,36 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          dockerfile: ./Dockerfile  # 显式指定Dockerfile路径（关键修正）
           push: true
-          # 标记镜像版本为latest
           tags: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 
   # == 任务2: 部署到云服务器 ==
   deploy:
-    needs: build-and-push # 只有任务1成功了才执行部署
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: 🚀 SSH远程部署
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0  # 升级到最新稳定版（关键修正）
         with:
           host: ${{ secrets.HOST_IP }}
-          username: root
+          username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script_stop: true # 如果脚本出错立即停止
+          script_stop: true
           script: |
             echo "--- 开始部署流程 ---"
 
-            # 1. 停止并删除旧容器(如果存在)
-            # || true 表示即使容器不存在也不报错, 继续执行
-            docker stop my-app || true
-            docker rm my-app || true
+            # 1. 停止并删除旧容器
+            sudo docker stop my-app || true  # 增加sudo（关键修正）
+            sudo docker rm my-app || true
 
-            # 2. 拉取Docker Hub上的最新镜像
+            # 2. 拉取最新镜像（失败则终止脚本）
             echo "正在拉取最新镜像..."
-            docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest || exit 1  # 处理拉取失败（关键修正）
 
             # 3. 启动新容器
             echo "启动新容器..."
-            docker run -d \
+            sudo docker run -d \
               --name my-app \
               --restart always \
               -p 8080:8080 \

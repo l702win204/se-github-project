@@ -43,6 +43,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: true  # 脚本出错时立即停止
           script: |
+            IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
             # 停止旧容器
             docker stop my-app || true
             docker rm my-app || true

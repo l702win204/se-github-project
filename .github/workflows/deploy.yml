@@ -38,23 +38,22 @@ jobs:
       - name: 🖥️ SSH 远程部署
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.HOST_IP }}
+          host: 47.114.99.254
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: true  # 脚本出错时立即停止
           script: |
-            IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
             # 停止旧容器
             docker stop my-app || true
             docker rm my-app || true
 
             # 拉取镜像（强制变量格式：双大括号+空格）
-            echo "拉取镜像: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
-            docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+            echo "拉取镜像: whylin/project-alpha:latest"
+            docker pull whylin/project-alpha:latest
 
             # 启动新容器
             docker run -d \
               --name my-app \
               --restart always \
               -p 8080:8080 \
-              ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+              whylin/project-alpha:latest

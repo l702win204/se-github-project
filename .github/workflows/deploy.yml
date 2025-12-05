@@ -36,8 +36,9 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0  # 升级到最新稳定版（关键修正）
         with:
           host: ${{ secrets.HOST_IP }}
-          username: ubuntu
+          username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
           script_stop: true
           script: |
             echo "--- 开始部署流程 ---"

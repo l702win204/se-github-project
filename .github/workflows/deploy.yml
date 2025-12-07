@@ -44,7 +44,7 @@ jobs:
             docker rm my-app || true
 
             # 拉取镜像（强制变量格式：双大括号+空格）
-            echo "拉取镜像: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
+            echo "拉取镜像: whylin/project-alpha:latest"
             docker pull whylin/project-alpha:latest
 
             # 启动新容器

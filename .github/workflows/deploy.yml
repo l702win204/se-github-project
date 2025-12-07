@@ -1,61 +1,68 @@
 name: CI/CD Pipeline
 
-# 触发机制: 当代码Push到main分支时自动运行
 on:
   push:
     branches: [ main ]
 
 jobs:
-  # == 任务1: 构建并推送镜像 ==
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 检出代码(Checkout)
+      - name: 📥 检出代码
         uses: actions/checkout@v4
 
-      - name: 🐳 登录Docker Hub
+      - name: 🧪 调试DOCKER_USERNAME变量
+        run: echo "当前DOCKER_USERNAME:${{ secrets.DOCKER_USERNAME }}"
+
+      - name: 🐳 登录 Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 🛠️ 构建并推送镜像
+      - name: 🔨 构建并推送镜像
         uses: docker/build-push-action@v5
         with:
           context: .
-          dockerfile: ./Dockerfile  # 显式指定Dockerfile路径（关键修正）
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
 
-  # == 任务2: 部署到云服务器 ==
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: 🚀 SSH远程部署
-        uses: appleboy/ssh-action@v1.2.0  # 升级到最新稳定版（关键修正）
+      - name: 🖥️ SSH 远程部署
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST_IP }}
-          username: root
+          username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: true
           script: |
-            echo "--- 开始部署流程 ---"
+            # 1. 先登录Docker Hub（避免服务器未缓存凭证）
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            
+            # 2. 停止删除旧容器（保留原逻辑）
+            docker stop my-app || true
+            docker rm my-app || true
 
-            # 1. 停止并删除旧容器
-            sudo docker stop my-app || true  # 增加sudo（关键修正）
-            sudo docker rm my-app || true
+            # 3. 拉取镜像（加重试+强制更新，解决超时/版本问题）
+            IMAGE=${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+            echo "开始拉取镜像: $IMAGE"
+            # 重试3次，每次间隔5秒，--pull always强制拉最新
+            for i in {1..3}; do
+              if docker pull --pull always $IMAGE; then
+                echo "镜像拉取成功"
+                break
+              else
+                echo "第$i次拉取失败，5秒后重试..."
+                sleep 5
+              fi
+            done
 
-            # 2. 拉取最新镜像（失败则终止脚本）
-            echo "正在拉取最新镜像..."
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest || exit 1  # 处理拉取失败（关键修正）
-
-            # 3. 启动新容器
-            echo "启动新容器..."
-            sudo docker run -d \
+            # 4. 启动新容器（保留原逻辑）
+            docker run -d \
               --name my-app \
               --restart always \
               -p 8080:8080 \
-              ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
-
-            echo "--- 部署完成 ---"
+              $IMAGE

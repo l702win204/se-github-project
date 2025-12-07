@@ -24,7 +24,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+          tags: why/project-alpha:latest
 
   # === 任务2:部署到云服务器（确保变量格式正确） ===
   deploy:

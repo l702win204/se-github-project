@@ -45,11 +45,11 @@ jobs:
 
             # 拉取镜像（强制变量格式：双大括号+空格）
             echo "拉取镜像: ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest"
-            docker pull ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+            docker pull whylin/project-alpha:latest
 
             # 启动新容器
             docker run -d \
               --name my-app \
               --restart always \
               -p 8080:8080 \
-              ${{ secrets.DOCKER_USERNAME }}/project-alpha:latest
+              whylin/project-alpha:latest

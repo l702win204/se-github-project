@@ -40,7 +40,7 @@ jobs:
           script_stop: true
           script: |
             # 1. 先登录Docker Hub（避免服务器未缓存凭证）
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin || exit 1
             
             # 2. 停止删除旧容器（保留原逻辑）
             docker stop my-app || true

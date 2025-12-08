@@ -35,13 +35,13 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST_IP }}
-          username: root
+          username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           
           script: |
             # 停止旧容器
             docker stop my-app || true
-            docker rm my-app || true
+            docker rm -f my-app || true
 
             # 拉取镜像（强制变量格式：双大括号+空格）
             echo "拉取镜像: whylin/project-alpha:latest"

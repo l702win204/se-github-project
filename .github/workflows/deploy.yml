@@ -33,23 +33,23 @@ jobs:
     steps:
       - name: 🖥️ SSH 远程部署
         uses: appleboy/ssh-action@v1.0.3
-        #with:
-          #host: ${{ secrets.HOST_IP }}
-          #username: ubuntu
-          #key: ${{ secrets.SSH_PRIVATE_KEY }}
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           
-         # script: |
+          script: |
             # 停止旧容器
-          #  docker stop my-app || true
-           # docker rm -f my-app || true
+            docker stop my-app || true
+            docker rm -f my-app || true
 
             # 拉取镜像（强制变量格式：双大括号+空格）
-            #echo "拉取镜像: whylin/project-alpha:latest"
-            #docker pull whylin/project-alpha:latest
+            echo "拉取镜像: whylin/project-alpha:latest"
+            docker pull whylin/project-alpha:latest
 
             # 启动新容器
-            #docker run -d \
-             #--name my-app \
-              #--restart always \
-              #-p 8080:8080 \
-              #whylin/project-alpha:latest
+            docker run -d \
+             --name my-app \
+              --restart always \
+              -p 8080:8080 \
+              whylin/project-alpha:latest

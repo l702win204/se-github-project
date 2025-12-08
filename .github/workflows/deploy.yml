@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🖥️ SSH 远程部署
-        #uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.0.3
         #with:
           #host: ${{ secrets.HOST_IP }}
           #username: ubuntu

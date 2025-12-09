@@ -37,19 +37,23 @@ jobs:
           host: ${{ secrets.HOST_IP }}
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
+          script_stop: true # 如果脚本出错立即停止
           script: |
+           echo "--- 开始部署流程 ---"
+          
             # 停止旧容器
             docker stop my-app || true
             docker rm -f my-app || true
 
             # 拉取镜像（强制变量格式：双大括号+空格）
-            echo "拉取镜像: whylin/project-alpha:latest"
+            echo "正在拉取最新镜像..."
             docker pull whylin/project-alpha:latest
 
             # 启动新容器
+            echo "启动新容器..."
             docker run -d \
              --name my-app \
               --restart always \
               -p 8080:8080 \
               whylin/project-alpha:latest
+              echo "--- 部署完成 ---"

@@ -46,9 +46,8 @@ jobs:
             docker rm -f my-app || true
 
             # 拉取镜像（强制变量格式：双大括号+空格）
-            echo "正在拉取最新镜像..."
-            docker pull whylin/project-alpha:latest
-
+            echo "正在拉取最新镜像包"
+            docker load -i/root/project-alpha.tar
             # 启动新容器
             echo "启动新容器..."
             docker run -d \
